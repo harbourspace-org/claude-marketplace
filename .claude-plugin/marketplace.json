@@ -1,0 +1,19 @@
+{
+  "name": "harbourspace-claude-plugins",
+  "owner": {
+    "name": "Harbour.Space Institute of Technology",
+    "url": "https://harbour.space"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for the Harbour.Space engineering team",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "harbour-docs",
+      "source": "./plugins/harbour-docs",
+      "description": "Documentation management across Harbour.Space project repos and central docs site",
+      "version": "1.0.0"
+    }
+  ]
+}

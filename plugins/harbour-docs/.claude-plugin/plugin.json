@@ -1,0 +1,11 @@
+{
+  "name": "harbour-docs",
+  "version": "1.0.0",
+  "description": "Documentation management across Harbour.Space project repos and the central MkDocs site",
+  "author": {
+    "name": "Harbour.Space Institute of Technology",
+    "url": "https://harbour.space"
+  },
+  "repository": "https://gitlab.com/harbourspace/claude-plugins",
+  "keywords": ["documentation", "mkdocs", "docs", "claude-md"]
+}

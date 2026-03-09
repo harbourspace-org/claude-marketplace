@@ -76,12 +76,12 @@ When diving into an unfamiliar area of a project:
 
 ## Writing Guidelines
 
-Follow these when writing or updating documentation:
-
+- **Write naturally for the project** — there's no rigid template. Adapt sections to what the project actually needs
+- **CLAUDE.md should read as a project overview** — what this is, why it exists, how it fits in the ecosystem, then practical details (stack, commands, architecture, config, deployment). Not a dry spec sheet
 - **Be concrete** — include actual file paths, command examples, config snippets
 - **No filler** — skip "In this document we will..." preambles
-- **MkDocs Material compatible** — use admonitions, tabbed content, code fences with language tags (see `conventions.md` in this skill directory for syntax reference)
-- **Keep CLAUDE.md lean** — if you're adding more than a few lines, it probably belongs in `docs/`
+- **Plain markdown** — tables, code blocks with language tags, standard headers. No need for admonitions or fancy MkDocs features
+- **Keep CLAUDE.md lean** — if you're adding more than a few lines about a specific area, it probably belongs in `docs/`
 - **Don't duplicate** — CLAUDE.md gives the overview, docs/ goes deep. Don't repeat the same content in both
 
 ## Scaffolding a New Project
@@ -93,8 +93,7 @@ When a new project is added to the ecosystem:
 3. Add the `sync-docs` CI stage to `.gitlab-ci.yml` (see `sync-pipeline.md`)
 4. Add a nav entry in `docs-site/mkdocs.yml` under the appropriate category (Backends, Frontends, Infrastructure, or Analytics)
 
-## Reference Files
+## Reference
 
-For detailed syntax and templates, read these on-demand:
-- `${CLAUDE_SKILL_DIR}/conventions.md` — MkDocs markdown syntax, section templates, nav format
-- `${CLAUDE_SKILL_DIR}/sync-pipeline.md` — CI sync job template, deploy token setup, mkdocs.yml nav format
+For CI setup details (sync job template, deploy token, mkdocs.yml nav format), read on-demand:
+- `${CLAUDE_SKILL_DIR}/sync-pipeline.md`

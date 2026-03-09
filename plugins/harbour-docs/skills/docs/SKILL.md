@@ -13,11 +13,17 @@ argument-hint: "[project-name or topic]"
 
 # Harbour.Space Documentation Management
 
-You manage documentation across a multi-repo ecosystem. Every project syncs its docs to a central MkDocs site at `mkdocs.harbour.space`.
+You manage documentation across a multi-repo ecosystem. Every project syncs its docs to a central MkDocs site at `mkdocs.harbour.space`. Humans can browse all documentation there.
+
+## How It Works
+
+Each project repo has a CI job that watches for changes to `docs/` and `CLAUDE.md`. When you merge to main, CI automatically syncs those files to the central docs site. You don't need to do anything special — just edit the files in the project repo and merge. The rest is automatic.
+
+The only exception is **cross-project content** that doesn't belong to any single repo. For that, you write directly to the `docs-site` repo (`gitlab.com/harbourspace/docs`).
 
 ## Documentation Architecture
 
-There are two kinds of documentation per project, plus a central site:
+There are two kinds of documentation per project, plus the central site:
 
 ### 1. `CLAUDE.md` (project root)
 - Auto-loaded by Claude Code every session — keep it **concise**
@@ -37,8 +43,9 @@ There are two kinds of documentation per project, plus a central site:
 - File naming: kebab-case, singular topics (e.g. `auth.md` not `authentication.md`)
 
 ### 3. Central docs site (`docs-site` repo / `gitlab.com/harbourspace/docs`)
-- MkDocs Material site at `mkdocs.harbour.space`
-- Content arrives via CI sync from project repos (see `sync-pipeline.md`)
+- MkDocs Material site at `mkdocs.harbour.space` — the human-browsable hub for all project docs
+- Content arrives automatically via CI sync from project repos (see `sync-pipeline.md`)
+- CI sync and deployment take a few minutes after merge
 - **Write directly here** only for content that doesn't belong to any single project:
   - Cross-project integration guides
   - High-level architecture overviews spanning multiple services

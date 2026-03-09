@@ -15,7 +15,7 @@ docs-site repo receives commit
     ↓ CI runs: mkdocs build --strict (validates all docs)
     ↓ Dokploy rebuilds and deploys Docker container
     ↓
-Live at mkdocs.harbour.space (behind Keycloak SSO)
+Live at docs.harbour.space (behind Keycloak SSO)
 ```
 
 ## Adding Sync to a New Project

@@ -13,7 +13,7 @@ argument-hint: "[project-name or topic]"
 
 # Harbour.Space Documentation Management
 
-You manage documentation across a multi-repo ecosystem. Every project syncs its docs to a central MkDocs site at `mkdocs.harbour.space`. Humans can browse all documentation there.
+You manage documentation across a multi-repo ecosystem. Every project syncs its docs to a central MkDocs site at `docs.harbour.space`. Humans can browse all documentation there.
 
 ## How It Works
 
@@ -43,7 +43,7 @@ There are two kinds of documentation per project, plus the central site:
 - File naming: kebab-case, singular topics (e.g. `auth.md` not `authentication.md`)
 
 ### 3. Central docs site (`docs-site` repo / `gitlab.com/harbourspace/docs`)
-- MkDocs Material site at `mkdocs.harbour.space` — the human-browsable hub for all project docs
+- MkDocs Material site at `docs.harbour.space` — the human-browsable hub for all project docs
 - Content arrives automatically via CI sync from project repos (see `sync-pipeline.md`)
 - CI sync and deployment take a few minutes after merge
 - **Write directly here** only for content that doesn't belong to any single project:

@@ -2,6 +2,8 @@
 
 Claude Code plugin marketplace for the Harbour.Space engineering team.
 
+> **This repository is public.** Never commit secrets, tokens, credentials, or any sensitive information here.
+
 ## Available Plugins
 
 | Plugin | Description |

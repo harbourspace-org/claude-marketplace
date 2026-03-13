@@ -93,7 +93,7 @@ Closes [ISSUE-ID]($ARGUMENTS)
 - [ ] Smoke test affected pages/flows
 EOF
 )" \
-  --target-branch develop \
+  --target-branch test \
   --remove-source-branch
 ```
 
@@ -119,7 +119,7 @@ Confirm to the user that the comment was posted, and return both the MR URL and 
 - Never skip the planning step — always read relevant code before editing
 - Always use specific `git add <file>` rather than `git add -A`
 - Branch prefix and commit type must match the nature of the issue (fix/feat/chore/refactor/docs/perf/test)
-- Branch from the current HEAD (do not branch off main/master directly)
-- MR target branch is always `develop`
+- Branch from the current HEAD (do not branch off main/master/test directly)
+- MR target branch is always `test`
 - Commit message must include the Linear issue ID
 - Do not push to main/master/develop directly

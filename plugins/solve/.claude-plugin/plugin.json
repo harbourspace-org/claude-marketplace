@@ -1,0 +1,11 @@
+{
+  "name": "solve",
+  "version": "1.0.0",
+  "description": "Solve a Linear issue end-to-end: fetch, plan, implement, and open a GitLab MR",
+  "author": {
+    "name": "Harbour.Space Institute of Technology",
+    "url": "https://harbour.space"
+  },
+  "repository": "https://gitlab.com/harbourspace/claude-plugins",
+  "keywords": ["linear", "gitlab", "mr", "issue", "workflow"]
+}

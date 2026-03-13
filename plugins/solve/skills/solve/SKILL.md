@@ -97,7 +97,23 @@ EOF
   --remove-source-branch
 ```
 
-Return the MR URL to the user.
+Capture the MR URL from the command output.
+
+## Step 5 — Comment on the Linear issue
+
+After the MR is created, post a comment on the Linear issue using the `mcp__claude_ai_Linear__save_comment` tool.
+
+The issue ID was extracted in Step 1 (e.g. `HSDEV-141`). Use it to look up the issue and post the comment.
+
+Comment body (replace `<MR_URL>` with the actual URL from Step 4):
+
+```
+MR: <MR_URL>
+
+By Claude 🤖
+```
+
+Confirm to the user that the comment was posted, and return both the MR URL and the Linear issue URL.
 
 ## Important rules
 - Never skip the planning step — always read relevant code before editing

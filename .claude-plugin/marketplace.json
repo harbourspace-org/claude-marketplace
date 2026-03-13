@@ -14,6 +14,12 @@
       "source": "./plugins/harbour-docs",
       "description": "Documentation management across Harbour.Space project repos and central docs site",
       "version": "1.0.0"
+    },
+    {
+      "name": "solve",
+      "source": "./plugins/solve",
+      "description": "Solve a Linear issue end-to-end: fetch, plan, implement, and open a GitLab MR",
+      "version": "1.0.0"
     }
   ]
 }

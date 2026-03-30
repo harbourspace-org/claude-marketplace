@@ -49,7 +49,7 @@ lines.append('services:')
 for svc_name, svc_cfg in project['services'].items():
     offset = svc_cfg.get('port_offset', 0)
     internal_port = svc_cfg.get('internal_port', 0)
-    container_name = f'devkit-{instance_name}-$project_name-{svc_name}'
+    container_name = f'devkit-{instance_name}-{svc_name}'
 
     lines.append(f'  {svc_name}:')
     lines.append(f'    container_name: {container_name}')
@@ -76,7 +76,7 @@ print(f'Containers:')
 for svc_name, svc_cfg in project['services'].items():
     offset = svc_cfg.get('port_offset', 0)
     internal_port = svc_cfg.get('internal_port', 0)
-    container = f'devkit-{instance_name}-$project_name-{svc_name}'
+    container = f'devkit-{instance_name}-{svc_name}'
     if offset > 0 and internal_port > 0:
         port = base_port + (instance_index * port_range) + offset
         print(f'  {container} → {port}:{internal_port}')
@@ -98,7 +98,7 @@ case "${1:-help}" in
     echo "Usage: devkit-compose.sh generate <instance_name> <instance_index> <project_name> <output_dir>"
     echo ""
     echo "Generates docker-compose.devkit.yml override with instance-specific:"
-    echo "  - Container names (devkit-{instance}-{project}-{service})"
+    echo "  - Container names (devkit-{instance}-{service})"
     echo "  - Port mappings (base_port + index * range + offset)"
     echo "  - Network (devkit-{instance}-net)"
     exit 0

@@ -7,7 +7,6 @@ description: >
   destroy, status, logs, env validation, branch switching, cloning, exec,
   and garbage collection of stale instances.
 user-invocable: true
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
 argument-hint: "<command> [instance] [options]"
 ---
 
@@ -67,13 +66,26 @@ With defaults (`base_port: 9000`, `range: 100`):
 
 ## Concurrency Safety
 
-Multiple agents may run devkit commands simultaneously. All reads/writes to `.devkit-instances.json` MUST use file locking:
+Multiple agents may run devkit commands simultaneously. All reads/writes to `.devkit-instances.json` MUST use file locking via python3 (macOS does not have `flock`):
 
 ```bash
-(
-  flock -x 200
-  # read, modify, write .devkit-instances.json here
-) 200>"${STACKS_DIR}/.devkit-instances.lock"
+python3 -c "
+import json, fcntl, os
+
+lock_path = '${STACKS_DIR}/.devkit-instances.lock'
+state_path = '${STACKS_DIR}/.devkit-instances.json'
+
+with open(lock_path, 'w') as lock_file:
+    fcntl.flock(lock_file, fcntl.LOCK_EX)
+    # read state
+    with open(state_path) as f:
+        state = json.load(f)
+    # ... modify state ...
+    # write state
+    with open(state_path, 'w') as f:
+        json.dump(state, f, indent=2)
+    fcntl.flock(lock_file, fcntl.LOCK_UN)
+"
 ```
 
 ---
@@ -104,8 +116,8 @@ Creates a new isolated stack instance.
 5. For each project (respecting `depends_on` order):
    a. Clone repo: `glab repo clone {repo} {workspace}/stacks/{instance}/{project} -- --branch {branch}`
    b. Copy env file: `cp {project}/{env_file} {project}/.env`
-   c. Patch `.env` with `env_overrides` — resolve `{{CONTAINER_*}}` to `devkit-{instance}-{project}-{service}` and `{{PORT_*}}` to calculated ports
-   d. Patch `.env` with `env_links` — resolve cross-project refs like `{{laravel.PORT_nginx}}` and `{{laravel.CONTAINER_nginx}}`
+   c. Patch `.env` with `env_overrides` — resolve `{{CONTAINER_*}}` to `devkit-{instance}-{service}` and `{{PORT_*}}` to calculated ports
+   d. Patch `.env` with `env_links` — resolve cross-project refs like `{{laravel.PORT_laravel-php7}}` and `{{laravel.CONTAINER_laravel-php7}}`
    e. If `.env.secrets` exists at workspace root: merge matching vars into `.env` (secrets override env_overrides)
    f. Create Docker network: `docker network create devkit-{instance}-net 2>/dev/null || true`
    g. Generate compose override: run `devkit-compose.sh generate {instance} {index} {project} {project_dir}`
@@ -115,12 +127,16 @@ Creates a new isolated stack instance.
 7. Print summary: instance name, port range, projects, branches
 
 **Resolving placeholders in env_overrides:**
-- `{{CONTAINER_mysql}}` → `devkit-{instance}-{project}-mysql`
-- `{{PORT_nginx}}` → calculated port for that service in this instance
+- `{{CONTAINER_laravel-mysql}}` → `devkit-{instance}-laravel-mysql`
+- `{{PORT_laravel-php7}}` → calculated port for that service in this instance
 
 **Resolving env_links (cross-project):**
-- `{{laravel.PORT_nginx}}` → calculated nginx port for laravel in THIS instance
-- `{{laravel.CONTAINER_nginx}}` → `devkit-{instance}-laravel-nginx`
+- `{{laravel.PORT_laravel-php7}}` → calculated php7 port for laravel in THIS instance
+- `{{laravel.CONTAINER_laravel-php7}}` → `devkit-{instance}-laravel-php7`
+
+**Container naming:** `devkit-{instance}-{service}` (NOT `devkit-{instance}-{project}-{service}`). Since service names in the docker-compose files already include the project prefix (e.g., `laravel-mysql`, `frontend-react`), adding the project name again would be redundant.
+
+**Note:** Service names in the registry MUST match the actual service names in the project's `docker-compose.yml`. For example, laravel uses `laravel-mysql` (not `mysql`), and website uses `frontend-react` (not `react`).
 
 **Secrets merging (`.env.secrets`):**
 If `{workspace}/.env.secrets` exists, after patching env_overrides and env_links, read each line from `.env.secrets` and override the matching key in the project's `.env`. This allows shared API keys (AC, Sentry, Keycloak, etc.) to be injected automatically without the agent needing to know them.
@@ -251,7 +267,7 @@ Duplicates a stack with a new port range.
 Runs a command inside a container.
 
 ```bash
-docker exec -it devkit-{instance}-{project}-{service} {command}
+docker exec -it devkit-{instance}-{service} {command}
 ```
 
 ### `devkit gc [options]`

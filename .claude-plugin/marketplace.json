@@ -20,6 +20,12 @@
       "source": "./plugins/solve",
       "description": "Solve a Linear issue end-to-end: fetch, plan, implement, and open a GitLab MR",
       "version": "1.0.0"
+    },
+    {
+      "name": "devkit",
+      "source": "./plugins/devkit",
+      "description": "Multi-instance stack orchestrator — spin up isolated Docker environments per task/agent",
+      "version": "1.0.0"
     }
   ]
 }

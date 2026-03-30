@@ -14,6 +14,30 @@ argument-hint: "<command> [instance] [options]"
 
 You are the devkit skill. You orchestrate isolated Docker development environments for Harbour.Space projects. Each stack instance is a named group of projects (laravel, website, etc.) running in Docker with unique ports, container names, and network — fully isolated from other instances.
 
+## Platform Detection (run ONCE at the start of every session)
+
+Detect the OS before anything else:
+
+```bash
+uname -s 2>/dev/null || echo "Windows"
+```
+
+- `Darwin` → **macOS**
+- `Linux` → **Linux** (includes WSL)
+- `MINGW*` / `MSYS*` / `Windows` → **Windows**
+
+Store the result mentally and use the correct variant for every command below. The platform-specific differences are:
+
+| Operation | macOS / Linux | Windows (PowerShell/cmd) |
+|---|---|---|
+| Python command | `python3` | `python` |
+| Check command exists | `which <cmd> >/dev/null 2>&1` | `where <cmd> >nul 2>&1` |
+| File locking | `python3` with `fcntl` | `python` with `msvcrt` |
+| Check port in use | `lsof -i :<port> -sTCP:LISTEN` | `netstat -ano \| findstr :<port>` |
+| Shell scripts (.sh) | Run directly with `bash` | Run with `bash` (Git Bash/WSL required) |
+| Install glab | `brew install glab` | `winget install GLab.GLab` or `scoop install glab` |
+| Install python | `brew install python3` | `winget install Python.Python.3` |
+
 ## Pre-flight Checks (run before EVERY command)
 
 Before executing ANY devkit command, run these checks in order. If any check fails, stop and tell the user how to fix it — do NOT proceed with the command.
@@ -25,10 +49,13 @@ Before executing ANY devkit command, run these checks in order. If any check fai
    If fails → tell user: *"Docker Desktop is not running. Please start it and try again."*
 
 2. **glab CLI installed:**
-   ```bash
-   which glab >/dev/null 2>&1
-   ```
-   If fails → tell user: *"glab CLI is not installed. Install it with: `brew install glab`"*
+   - macOS/Linux: `which glab >/dev/null 2>&1`
+   - Windows: `where glab >nul 2>&1`
+
+   If fails → tell user:
+   - macOS: *"Install with: `brew install glab`"*
+   - Linux: *"Install with: `brew install glab` or see https://gitlab.com/gitlab-org/cli#installation"*
+   - Windows: *"Install with: `winget install GLab.GLab`"*
 
 3. **glab authenticated with GitLab:**
    ```bash
@@ -36,11 +63,13 @@ Before executing ANY devkit command, run these checks in order. If any check fai
    ```
    If fails → tell user: *"glab is not authenticated. Run: `glab auth login` and follow the prompts to log in to gitlab.com."*
 
-4. **python3 available** (used by helper scripts):
-   ```bash
-   which python3 >/dev/null 2>&1
-   ```
-   If fails → tell user: *"python3 is required but not found. Install it with: `brew install python3`"*
+4. **Python available** (used by helper scripts):
+   - macOS/Linux: `which python3 >/dev/null 2>&1`
+   - Windows: `where python >nul 2>&1`
+
+   If fails → tell user:
+   - macOS: *"Install with: `brew install python3`"*
+   - Windows: *"Install with: `winget install Python.Python.3`"*
 
 All four checks must pass before proceeding.
 
@@ -66,25 +95,44 @@ With defaults (`base_port: 9000`, `range: 100`):
 
 ## Concurrency Safety
 
-Multiple agents may run devkit commands simultaneously. All reads/writes to `.devkit-instances.json` MUST use file locking via python3 (macOS does not have `flock`):
+Multiple agents may run devkit commands simultaneously. All reads/writes to `.devkit-instances.json` MUST use file locking.
 
+**macOS / Linux** — use `fcntl`:
 ```bash
 python3 -c "
-import json, fcntl, os
+import json, fcntl
 
 lock_path = '${STACKS_DIR}/.devkit-instances.lock'
 state_path = '${STACKS_DIR}/.devkit-instances.json'
 
 with open(lock_path, 'w') as lock_file:
     fcntl.flock(lock_file, fcntl.LOCK_EX)
-    # read state
     with open(state_path) as f:
         state = json.load(f)
     # ... modify state ...
-    # write state
     with open(state_path, 'w') as f:
         json.dump(state, f, indent=2)
     fcntl.flock(lock_file, fcntl.LOCK_UN)
+"
+```
+
+**Windows** — use `msvcrt`:
+```bash
+python -c "
+import json, msvcrt, os
+
+lock_path = '${STACKS_DIR}/.devkit-instances.lock'
+state_path = '${STACKS_DIR}/.devkit-instances.json'
+
+lock_file = open(lock_path, 'w')
+msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
+with open(state_path) as f:
+    state = json.load(f)
+# ... modify state ...
+with open(state_path, 'w') as f:
+    json.dump(state, f, indent=2)
+msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+lock_file.close()
 "
 ```
 
@@ -113,7 +161,8 @@ Creates a new isolated stack instance.
 2. Determine project list: if `--projects` specified, use those; otherwise use ALL projects from registry
 3. **Lock** `.devkit-instances.json` → allocate next available `index` → increment `next_index` → **unlock**
 4. Calculate port range: `base_port + (index * range)`
-5. For each project (respecting `depends_on` order):
+5. **MANDATORY — Check for port conflicts:** Run `devkit-ports.sh check-range {index}`. If any port is in use, warn the user with the list of conflicting ports and what's using them (`lsof -i :{port}`). Do NOT abort — proceed with create, but make it clear the user must free those ports before running `devkit up`.
+6. For each project (respecting `depends_on` order):
    a. Clone repo: `glab repo clone {repo} {workspace}/stacks/{instance}/{project} -- --branch {branch}`
    b. Copy env file: `cp {project}/{env_file} {project}/.env`
    c. Patch `.env` with `env_overrides` — resolve `{{CONTAINER_*}}` to `devkit-{instance}-{service}` and `{{PORT_*}}` to calculated ports

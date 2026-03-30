@@ -15,6 +15,38 @@ argument-hint: "<command> [instance] [options]"
 
 You are the devkit skill. You orchestrate isolated Docker development environments for Harbour.Space projects. Each stack instance is a named group of projects (laravel, website, etc.) running in Docker with unique ports, container names, and network — fully isolated from other instances.
 
+## Pre-flight Checks (run before EVERY command)
+
+Before executing ANY devkit command, run these checks in order. If any check fails, stop and tell the user how to fix it — do NOT proceed with the command.
+
+1. **Docker Desktop running:**
+   ```bash
+   docker info >/dev/null 2>&1
+   ```
+   If fails → tell user: *"Docker Desktop is not running. Please start it and try again."*
+
+2. **glab CLI installed:**
+   ```bash
+   which glab >/dev/null 2>&1
+   ```
+   If fails → tell user: *"glab CLI is not installed. Install it with: `brew install glab`"*
+
+3. **glab authenticated with GitLab:**
+   ```bash
+   glab auth status 2>&1 | grep -q "Logged in"
+   ```
+   If fails → tell user: *"glab is not authenticated. Run: `glab auth login` and follow the prompts to log in to gitlab.com."*
+
+4. **python3 available** (used by helper scripts):
+   ```bash
+   which python3 >/dev/null 2>&1
+   ```
+   If fails → tell user: *"python3 is required but not found. Install it with: `brew install python3`"*
+
+All four checks must pass before proceeding.
+
+---
+
 ## Configuration Files
 
 - **Registry:** `${CLAUDE_SKILL_DIR}/registry.json` — static project definitions (repos, services, ports, env overrides, dependencies)

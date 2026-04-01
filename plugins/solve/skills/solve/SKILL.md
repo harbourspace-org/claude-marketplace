@@ -1,15 +1,26 @@
 ---
 name: solve
-description: Solve a Linear issue end-to-end. Fetches the issue, spins up an isolated devkit stack, plans, implements, and creates a GitLab MR. Use when given a Linear issue URL to resolve.
-argument-hint: <linear-issue-url>
+description: >
+  Solve an issue end-to-end. Accepts a Linear issue URL, an issue ID (e.g. HSDEV-222),
+  or a literal text description. Spins up an isolated devkit stack, fixes the problem
+  autonomously, verifies it, and creates a GitLab MR.
+argument-hint: <linear-url | issue-id | text description>
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Agent
 ---
 
-You are solving a Linear issue. The issue URL is: $ARGUMENTS
+You are solving an issue. The input is: $ARGUMENTS
 
 Follow these steps exactly:
 
-## Step 1 — Fetch the issue
+## Step 0 — Determine input mode
+
+Inspect `$ARGUMENTS` to determine the input type:
+
+- **Linear URL** — if the input contains `linear.app/` or starts with `https://`. Proceed to **Step 1A**.
+- **Issue ID** — if the input matches a pattern like `HSDEV-222`, `hsdev-222`, `HSWEB-55`, etc. (1-5 uppercase/lowercase letters, a hyphen, then digits). Proceed to **Step 1C**.
+- **Literal text** — anything else is a freeform text description of the problem. Proceed to **Step 1B**.
+
+## Step 1A — Fetch Linear issue from URL
 
 Use WebFetch to load the Linear issue URL: $ARGUMENTS
 
@@ -22,6 +33,43 @@ Extract:
 - **Project hints** — determine which projects are affected (laravel, website, or both)
 - **Server/environment hints** — if the issue involves the website, look for mentions of which API server or environment to point to (e.g. pre-production, production, a specific URL)
 
+Then continue to **Step 2**.
+
+## Step 1B — Parse literal text input
+
+The user provided a text description instead of a Linear issue or ID.
+
+From the text, extract what you can:
+- **Problem description** — what needs to be fixed or built
+- **Project hints** — any mention of laravel, website, frontend, backend, API, UI, etc.
+- **Branch hints** — any mention of a branch name
+- **Server/environment hints** — any mention of which environment to target
+
+Since there is no Linear issue:
+- **Issue ID** — there is none. Generate a stack name from the text: take the first 3-4 meaningful words, lowercase, joined by hyphens (e.g. `fix-login-redirect`, `add-export-button`). Max 30 characters.
+- **No Linear comment** will be posted (skip Step 6).
+- **MR description** will reference the original text description instead of a Linear URL.
+
+Then continue to **Step 2**.
+
+## Step 1C — Look up Linear issue by ID
+
+The user provided an issue ID directly (e.g. `HSDEV-222`). Normalize it to uppercase.
+
+Use the `mcp__claude_ai_Linear__search_issues` tool to find the issue by its ID. If no MCP tool is available, construct the Linear URL from the ID and fetch it:
+
+```
+https://linear.app/harbourspace/issue/<ISSUE-ID>
+```
+
+Once you have the issue, extract the same fields as Step 1A:
+- Issue ID, Title, Description / body
+- Branch hints, Project hints, Server/environment hints
+
+Then continue to **Step 2**.
+
+Then continue to **Step 2**.
+
 ## Step 2 — Resolve environment details
 
 You need three pieces of information before creating the devkit stack:
@@ -32,7 +80,7 @@ You need three pieces of information before creating the devkit stack:
 
 ### How to resolve
 
-First, check the issue description from Step 1 for explicit answers.
+First, check the issue/problem description from Step 1A or 1B for explicit answers.
 
 If any detail is missing from the issue, try to infer it from the CLAUDE.md files of each project in the codebase. The CLAUDE.md files contain information about branch strategies, environments, and deployment targets. Read them:
 
@@ -64,7 +112,9 @@ Do NOT proceed until all three details are resolved.
 
 Use the devkit skill to spin up an isolated development environment for this issue.
 
-**Stack name:** Use the issue ID in lowercase (e.g. `hsdev-222` for issue HSDEV-222).
+**Stack name:**
+- **Linear mode:** Use the issue ID in lowercase (e.g. `hsdev-222` for issue HSDEV-222).
+- **Text mode:** Use the generated slug from Step 1B (e.g. `fix-login-redirect`).
 
 Build the devkit create command based on what you resolved in Step 2:
 
@@ -188,7 +238,10 @@ git checkout -b <prefix>/ISSUE-ID-short-description
 Stage and commit:
 ```bash
 git add <specific files>
+# Linear mode:
 git commit -m "<prefix>(ISSUE-ID): short description matching the Linear issue title"
+# Text mode (no issue ID):
+git commit -m "<prefix>: short description derived from the problem text"
 ```
 
 Push:
@@ -203,6 +256,7 @@ For each project that has changes:
 ```bash
 cd ~/Documents/HSCode/work/stacks/hsdev-222/<project>
 
+### Linear mode:
 glab mr create \
   --title "<prefix>(ISSUE-ID): <issue title>" \
   --description "$(cat <<'EOF'
@@ -219,15 +273,38 @@ EOF
 )" \
   --target-branch test \
   --remove-source-branch
+
+### Text mode (no Linear issue):
+glab mr create \
+  --title "<prefix>: <short description>" \
+  --description "$(cat <<'EOF'
+## Summary
+
+<bullet points describing what changed and why>
+
+## Context
+
+Original request:
+> <the literal text the user provided>
+
+## Test plan
+- [ ] Verify the reported behaviour is resolved
+- [ ] Smoke test affected pages/flows
+EOF
+)" \
+  --target-branch test \
+  --remove-source-branch
 ```
 
 Capture the MR URL(s) from the command output.
 
-## Step 6 — Comment on the Linear issue
+## Step 6 — Comment on the Linear issue (Linear mode only)
+
+**Skip this step entirely if the input was literal text (Step 1B).**
 
 After the MR(s) are created, post a comment on the Linear issue using the `mcp__claude_ai_Linear__save_comment` tool.
 
-The issue ID was extracted in Step 1 (e.g. `HSDEV-222`). Use it to look up the issue and post the comment.
+The issue ID was extracted in Step 1A (e.g. `HSDEV-222`). Use it to look up the issue and post the comment.
 
 Comment body (replace `<MR_URL>` with the actual URL(s) from Step 5):
 

@@ -208,7 +208,27 @@ You MUST verify that the fix actually works. Use every tool at your disposal:
 
 ### 4d — Iterate
 
-If verification reveals problems, fix them and verify again. Repeat until you are confident the issue is fully resolved. Do not move to Step 5 until all checks pass.
+If verification reveals problems, fix them and verify again. Repeat until you are confident the issue is fully resolved.
+
+### 4e — Human review (MANDATORY before MR)
+
+Once you believe the fix is complete and all your automated checks pass, **stop and hand control to the user for review**.
+
+Present a summary of what you changed and remind the user:
+
+> **Your review is required before I create the MR.** It's your responsibility to verify everything works correctly. Please review the changes, test them yourself if needed, and let me know:
+> - **"approved"** / **"looks good"** / **"go ahead"** → I'll create the MR
+> - Or tell me what needs to change → I'll fix it
+
+**Do NOT create the MR until the user explicitly approves.**
+
+If the user requests changes:
+1. Make the changes they ask for
+2. Re-run verification (tests, build, logs, browser — whatever applies)
+3. Present the updated summary
+4. Ask for approval again
+
+This is a collaborative loop — keep iterating with the user until they are satisfied. There is no limit on how many rounds this can take.
 
 ## Step 5 — Create a GitLab MR
 

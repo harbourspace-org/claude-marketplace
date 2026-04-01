@@ -26,6 +26,12 @@
       "source": "./plugins/devkit",
       "description": "Multi-instance stack orchestrator — spin up isolated Docker environments per task/agent",
       "version": "1.0.0"
+    },
+    {
+      "name": "complete",
+      "source": "./plugins/complete",
+      "description": "Post-merge cleanup: tears down devkit stacks, pipelines, webhooks, and all issue-specific resources",
+      "version": "1.0.0"
     }
   ]
 }

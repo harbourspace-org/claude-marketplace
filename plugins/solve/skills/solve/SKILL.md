@@ -1,6 +1,6 @@
 ---
 name: solve
-description: Solve a Linear issue end-to-end. Fetches the issue, plans a fix, implements it, and creates a GitLab MR. Use when given a Linear issue URL to resolve.
+description: Solve a Linear issue end-to-end. Fetches the issue, spins up an isolated devkit stack, plans, implements, and creates a GitLab MR. Use when given a Linear issue URL to resolve.
 argument-hint: <linear-issue-url>
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Agent
 ---
@@ -14,28 +14,150 @@ Follow these steps exactly:
 Use WebFetch to load the Linear issue URL: $ARGUMENTS
 
 Extract:
-- Issue ID (e.g. HSDEV-141)
+- Issue ID (e.g. HSDEV-222)
 - Title
 - Description / body
 - Any linked resources or reproduction steps
+- **Branch hints** — look for explicit mentions of a branch name, source branch, or base branch
+- **Project hints** — determine which projects are affected (laravel, website, or both)
+- **Server/environment hints** — if the issue involves the website, look for mentions of which API server or environment to point to (e.g. pre-production, production, a specific URL)
 
-## Step 2 — Plan
+## Step 2 — Resolve environment details
 
-Think through the fix before touching code:
-- Understand what the bug/feature is from the issue description
-- Search the codebase for relevant files (use Grep, Glob, Read)
+You need three pieces of information before creating the devkit stack:
+
+1. **Affected projects** — which projects need to be cloned and modified (laravel, website, or both)
+2. **Branch per project** — what branch to check out for each affected project
+3. **API target** (website only) — if the website is involved but laravel is NOT being modified, which remote API server should it point to
+
+### How to resolve
+
+First, check the issue description from Step 1 for explicit answers.
+
+If any detail is missing from the issue, try to infer it from the CLAUDE.md files of each project in the codebase. The CLAUDE.md files contain information about branch strategies, environments, and deployment targets. Read them:
+
+```bash
+# Check for CLAUDE.md in known project locations
+cat ~/Documents/HSCode/work/laravel/CLAUDE.md 2>/dev/null
+cat ~/Documents/HSCode/work/website/CLAUDE.md 2>/dev/null
+```
+
+**Inference rules:**
+- If the issue mentions a specific file path or code pattern, grep the codebase to determine which project(s) it belongs to
+- If the issue is clearly a backend bug (API, database, queue, etc.) → laravel only
+- If the issue is clearly a frontend/UI bug → website only (but you still need to know the API target)
+- If the issue spans both → both projects
+- For branches: if no branch is mentioned, use the project's default branch from the devkit registry (laravel: `master`, website: `main`)
+- For API target when website-only: if the issue doesn't mention a server and the CLAUDE.md doesn't clarify, you MUST ask
+
+### If you still can't determine any of the three details — ASK THE USER
+
+Use AskUserQuestion to ask specifically what you need. Examples:
+
+- *"The issue doesn't specify which branch to base this on for `laravel`. Should I use `master` or a specific branch?"*
+- *"This looks like a website-only issue. Which API server should the website point to? (e.g. `https://pre-prod.harbour.space`, local laravel, etc.)"*
+- *"I can't tell if this affects laravel, website, or both. Can you clarify which project(s) need changes?"*
+
+Do NOT proceed until all three details are resolved.
+
+## Step 3 — Create devkit stack
+
+Use the devkit skill to spin up an isolated development environment for this issue.
+
+**Stack name:** Use the issue ID in lowercase (e.g. `hsdev-222` for issue HSDEV-222).
+
+Build the devkit create command based on what you resolved in Step 2:
+
+```bash
+# Example: both projects, laravel on a feature branch, website on main
+devkit create hsdev-222 --branches laravel:feature/some-branch,website:main
+
+# Example: laravel only
+devkit create hsdev-222 --projects laravel --branches laravel:master
+
+# Example: website only (laravel still needed for local API)
+devkit create hsdev-222 --branches laravel:master,website:main
+```
+
+**Important:** Invoke the devkit skill commands by running them as described in the devkit SKILL.md — read the devkit registry.json, run pre-flight checks, and execute the create flow. The devkit skill files are located at:
+- `${CLAUDE_SKILL_DIR}/../../devkit/skills/devkit/SKILL.md`
+- `${CLAUDE_SKILL_DIR}/../../devkit/skills/devkit/registry.json`
+
+If the website is involved but laravel is NOT being modified and the user specified a remote API target, patch the website `.env` after creation to point to that remote server instead of the local laravel instance:
+
+```bash
+# Override API endpoints in the website .env to point to remote server
+STACK_DIR=~/Documents/HSCode/work/stacks/hsdev-222/website
+sed -i '' "s|API_ENDPOINT_CLIENT=.*|API_ENDPOINT_CLIENT=${REMOTE_API_URL}|" "$STACK_DIR/.env"
+sed -i '' "s|API_ENDPOINT_SERVER=.*|API_ENDPOINT_SERVER=${REMOTE_API_URL}|" "$STACK_DIR/.env"
+sed -i '' "s|HSAJAX_ENDPOINT_CLIENT=.*|HSAJAX_ENDPOINT_CLIENT=${REMOTE_API_URL}|" "$STACK_DIR/.env"
+sed -i '' "s|HSAJAX_ENDPOINT_SERVER=.*|HSAJAX_ENDPOINT_SERVER=${REMOTE_API_URL}|" "$STACK_DIR/.env"
+```
+
+After the stack is created, start it:
+```
+devkit up hsdev-222
+```
+
+Wait for health checks to pass before proceeding.
+
+## Step 4 — Fix, verify, and iterate
+
+Work inside the devkit stack directory: `~/Documents/HSCode/work/stacks/<issue-id>/`
+
+This step is **autonomous**. Fix the issue and verify the fix yourself — do not stop to ask for approval unless you are genuinely stuck.
+
+### 4a — Understand
+
+- Read the issue description carefully
+- Search the codebase for relevant files (Grep, Glob, Read) within the stack directory
 - Identify the root cause or the right place to add the feature
-- Write a short, clear plan: what files change and why
 
-Present the plan to the user and wait for approval before proceeding.
+### 4b — Implement
 
-## Step 3 — Implement
-
-- Make the targeted changes described in the plan
+- Make the targeted changes
 - Keep changes minimal and focused — do not refactor unrelated code
-- Run any relevant checks if possible (lint, build, tests)
 
-## Step 4 — Create a GitLab MR
+### 4c — Verify exhaustively
+
+You MUST verify that the fix actually works. Use every tool at your disposal:
+
+1. **Run existing tests** — execute the project's test suite and ensure nothing breaks:
+   ```bash
+   # Laravel
+   docker exec devkit-<instance>-laravel-php7 php artisan test
+   # Website
+   docker exec devkit-<instance>-frontend-react npm test
+   ```
+
+2. **Write new tests** — if the bug or feature doesn't have test coverage, write tests that prove the fix works and would have caught the original issue.
+
+3. **Check logs** — read container logs for errors or warnings:
+   ```bash
+   devkit logs <instance> <project>
+   ```
+
+4. **Use Chrome MCP** — if the issue is visual or involves UI behavior, use the Chrome MCP tools to:
+   - Navigate to the affected page
+   - Verify the UI renders correctly
+   - Interact with the page to confirm the fix
+   - Take screenshots if useful
+
+5. **Run lint/build** — ensure the code compiles and passes linting:
+   ```bash
+   # Laravel
+   docker exec devkit-<instance>-laravel-php7 ./vendor/bin/phpstan analyse
+   # Website
+   docker exec devkit-<instance>-frontend-react npm run build
+   ```
+
+6. **Test edge cases** — think about what could still go wrong and test those scenarios too.
+
+### 4d — Iterate
+
+If verification reveals problems, fix them and verify again. Repeat until you are confident the issue is fully resolved. Do not move to Step 5 until all checks pass.
+
+## Step 5 — Create a GitLab MR
 
 ### Determine the branch prefix
 
@@ -55,13 +177,11 @@ Use the issue title and description to determine the right type. When in doubt, 
 
 ### Branch & commit
 
-Check current branch:
-```bash
-git rev-parse --abbrev-ref HEAD
-```
+For each project that was modified, `cd` into its stack directory and:
 
-If on main/master/release/develop branch, create a new branch:
 ```bash
+cd ~/Documents/HSCode/work/stacks/hsdev-222/<project>
+
 git checkout -b <prefix>/ISSUE-ID-short-description
 ```
 
@@ -78,7 +198,11 @@ git push -u origin HEAD
 
 ### Open the MR
 
+For each project that has changes:
+
 ```bash
+cd ~/Documents/HSCode/work/stacks/hsdev-222/<project>
+
 glab mr create \
   --title "<prefix>(ISSUE-ID): <issue title>" \
   --description "$(cat <<'EOF'
@@ -97,15 +221,15 @@ EOF
   --remove-source-branch
 ```
 
-Capture the MR URL from the command output.
+Capture the MR URL(s) from the command output.
 
-## Step 5 — Comment on the Linear issue
+## Step 6 — Comment on the Linear issue
 
-After the MR is created, post a comment on the Linear issue using the `mcp__claude_ai_Linear__save_comment` tool.
+After the MR(s) are created, post a comment on the Linear issue using the `mcp__claude_ai_Linear__save_comment` tool.
 
-The issue ID was extracted in Step 1 (e.g. `HSDEV-141`). Use it to look up the issue and post the comment.
+The issue ID was extracted in Step 1 (e.g. `HSDEV-222`). Use it to look up the issue and post the comment.
 
-Comment body (replace `<MR_URL>` with the actual URL from Step 4):
+Comment body (replace `<MR_URL>` with the actual URL(s) from Step 5):
 
 ```
 MR: <MR_URL>
@@ -113,13 +237,25 @@ MR: <MR_URL>
 By Claude 🤖
 ```
 
-Confirm to the user that the comment was posted, and return both the MR URL and the Linear issue URL.
+If multiple MRs were created (one per project), list them all.
+
+Confirm to the user that the comment was posted, and return the MR URL(s) and the Linear issue URL.
+
+## Step 7 — Cleanup reminder
+
+Remind the user that the devkit stack `hsdev-222` is still running. They can:
+- `devkit down hsdev-222` — stop the containers
+- `devkit destroy hsdev-222` — remove everything after the MR is merged
 
 ## Important rules
-- Never skip the planning step — always read relevant code before editing
+- **Autonomous mode** — do not pause for user approval during implementation and verification. Fix it, verify it, iterate until it works. Only ask the user if you are genuinely stuck.
+- Always read relevant code before editing — understand first, then change
 - Always use specific `git add <file>` rather than `git add -A`
+- **Verify exhaustively** — never create an MR without confirming the fix works (tests, logs, browser, build)
 - Branch prefix and commit type must match the nature of the issue (fix/feat/chore/refactor/docs/perf/test)
-- Branch from the current HEAD (do not branch off main/master/test directly)
 - MR target branch is always `test`
 - Commit message must include the Linear issue ID
 - Do not push to main/master/develop directly
+- All work happens inside the devkit stack directory, NOT in the original project repos
+- If you can't determine the branch, affected projects, or API target — ASK, don't guess
+- Stack name is always the issue ID in lowercase (e.g. `hsdev-222`)

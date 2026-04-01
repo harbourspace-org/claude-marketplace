@@ -1,0 +1,11 @@
+{
+  "name": "complete",
+  "version": "1.0.0",
+  "description": "Post-merge cleanup for /solve issues: tears down devkit stacks, pipelines, webhooks, and all issue-specific resources",
+  "author": {
+    "name": "Harbour.Space Institute of Technology",
+    "url": "https://harbour.space"
+  },
+  "repository": "https://gitlab.com/harbourspace/claude-plugins",
+  "keywords": ["cleanup", "teardown", "devkit", "pipeline", "post-merge"]
+}

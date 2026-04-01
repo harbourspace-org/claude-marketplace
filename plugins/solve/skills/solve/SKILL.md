@@ -68,8 +68,6 @@ Once you have the issue, extract the same fields as Step 1A:
 
 Then continue to **Step 2**.
 
-Then continue to **Step 2**.
-
 ## Step 2 — Resolve environment details
 
 You need three pieces of information before creating the devkit stack:

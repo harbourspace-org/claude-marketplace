@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Agent
 
 You are solving an issue. The input is: $ARGUMENTS
 
-Follow these steps exactly:
+Follow these steps unless the user implies otherwise — this isn't hardcoded behavior. Adapt to the user's intent.
 
 ## Step 0 — Determine input mode
 
@@ -98,15 +98,18 @@ cat ~/Documents/HSCode/work/website/CLAUDE.md 2>/dev/null
 - For branches: if no branch is mentioned, use the project's default branch from the devkit registry (laravel: `master`, website: `main`)
 - For API target when website-only: if the issue doesn't mention a server and the CLAUDE.md doesn't clarify, you MUST ask
 
-### If you still can't determine any of the three details — ASK THE USER
+### If you can't determine which projects are affected — CLONE ALL
+
+If after reading the issue and the CLAUDE.md files you still can't confidently determine which projects need changes, **clone all projects** (this is devkit's default behaviour). Do not block on this question — it's better to have all projects available and not need them than to be missing one mid-fix.
+
+### If you can't determine branch or API target — ASK THE USER
 
 Use AskUserQuestion to ask specifically what you need. Examples:
 
 - *"The issue doesn't specify which branch to base this on for `laravel`. Should I use `master` or a specific branch?"*
 - *"This looks like a website-only issue. Which API server should the website point to? (e.g. `https://pre-prod.harbour.space`, local laravel, etc.)"*
-- *"I can't tell if this affects laravel, website, or both. Can you clarify which project(s) need changes?"*
 
-Do NOT proceed until all three details are resolved.
+Do NOT proceed without a resolved branch and API target (when applicable).
 
 ## Step 3 — Create devkit stack
 

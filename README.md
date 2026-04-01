@@ -10,6 +10,7 @@ Claude Code plugin marketplace for the Harbour.Space engineering team.
 |---|---|
 | **harbour-docs** | Documentation management across project repos and the central MkDocs site |
 | **solve** | Solve a Linear issue end-to-end: fetch, plan, implement, and open a GitLab MR |
+| **devkit** | Multi-instance stack orchestrator — isolated Docker environments per task/agent |
 
 ## Installation
 
@@ -20,6 +21,7 @@ Claude Code plugin marketplace for the Harbour.Space engineering team.
 # Install a plugin
 /plugin install harbour-docs@harbourspace-claude-plugins
 /plugin install solve@harbourspace-claude-plugins
+/plugin install devkit@harbourspace-claude-plugins
 ```
 
 Or add to a project's `.claude/settings.json` to auto-enable for all team members:
@@ -33,7 +35,8 @@ Or add to a project's `.claude/settings.json` to auto-enable for all team member
   },
   "enabledPlugins": {
     "harbour-docs@harbourspace-claude-plugins": true,
-    "solve@harbourspace-claude-plugins": true
+    "solve@harbourspace-claude-plugins": true,
+    "devkit@harbourspace-claude-plugins": true
   }
 }
 ```
@@ -45,4 +48,5 @@ Test a plugin locally without installing:
 ```bash
 claude --plugin-dir ./plugins/harbour-docs
 claude --plugin-dir ./plugins/solve
+claude --plugin-dir ./plugins/devkit
 ```

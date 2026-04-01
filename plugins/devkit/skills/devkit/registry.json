@@ -1,0 +1,76 @@
+{
+  "workspace": "~/Documents/HSCode/work",
+  "stacks_dir": "stacks",
+  "base_port": 9000,
+  "port_range_per_instance": 100,
+  "clone_strategy": "all",
+  "projects": {
+    "laravel": {
+      "repo": "harbourspace/laravel",
+      "default_branch": "master",
+      "image": null,
+      "compose_file": "docker-compose.yml",
+      "env_file": ".env.example",
+      "services": {
+        "laravel-mysql":      { "port_offset": 1, "internal_port": 3306 },
+        "laravel-php7":       { "port_offset": 2, "internal_port": 9000 },
+        "laravel-phpmyadmin": { "port_offset": 4, "internal_port": 80 },
+        "laravel-mysql-test": { "port_offset": 5, "internal_port": 3306 },
+        "laravel-queue":      { "port_offset": 0 },
+        "laravel-mailrelay":  { "port_offset": 0 }
+      },
+      "env_overrides": {
+        "DB_HOST": "{{CONTAINER_laravel-mysql}}",
+        "DB_PORT": "3306",
+        "DB_DATABASE": "hs-laravel",
+        "DB_USERNAME": "laravel",
+        "DB_PASSWORD": "hs-laravel-pwd"
+      },
+      "post_setup": [
+        "composer install",
+        "php artisan key:generate",
+        "php artisan migrate"
+      ],
+      "depends_on": [],
+      "health_check": {
+        "command": "curl -sf http://127.0.0.1:{{PORT_laravel-php7}}/api/v1/health",
+        "timeout_seconds": 120,
+        "interval_seconds": 5,
+        "retries": 24
+      }
+    },
+    "website": {
+      "repo": "harbourspace/website",
+      "default_branch": "main",
+      "image": null,
+      "compose_file": "docker-compose.yml",
+      "env_file": ".env.pre-production",
+      "services": {
+        "frontend-react": { "port_offset": 10, "internal_port": 3000 },
+        "frontend-nginx": { "port_offset": 11, "internal_port": 80 }
+      },
+      "env_overrides": {
+        "REACT_APP_ENV": "development",
+        "HOST": "0.0.0.0",
+        "PORT": "3000",
+        "DOMAIN": "http://127.0.0.1:{{PORT_frontend-nginx}}"
+      },
+      "env_links": {
+        "API_ENDPOINT_CLIENT": "http://127.0.0.1:{{laravel.PORT_laravel-php7}}",
+        "API_ENDPOINT_SERVER": "http://{{laravel.CONTAINER_laravel-php7}}:9000",
+        "HSAJAX_ENDPOINT_CLIENT": "http://127.0.0.1:{{laravel.PORT_laravel-php7}}",
+        "HSAJAX_ENDPOINT_SERVER": "http://{{laravel.CONTAINER_laravel-php7}}:9000"
+      },
+      "post_setup": [
+        "npm install"
+      ],
+      "depends_on": ["laravel"],
+      "health_check": {
+        "command": "curl -sf http://127.0.0.1:{{PORT_frontend-react}}",
+        "timeout_seconds": 90,
+        "interval_seconds": 5,
+        "retries": 18
+      }
+    }
+  }
+}

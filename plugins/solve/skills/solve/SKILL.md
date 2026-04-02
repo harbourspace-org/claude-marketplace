@@ -70,3 +70,4 @@ For each modified project inside the stack:
 - Commit messages include the issue ID (Linear mode)
 - Use specific `git add <file>`, never `git add -A`
 - Never push to main/master/develop
+- **Production database changes are a last resort.** If after exhausting all other options the only viable fix requires SSH into production to modify the database directly: (1) stop and explain to the developer why no code-level fix is possible, (2) explicitly ask the developer for permission, making clear they must get CTO approval before authorizing, (3) only proceed after the developer confirms CTO approval has been granted. Never SSH into production or run direct database modifications without this two-level authorization chain (developer → CTO).

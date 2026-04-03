@@ -16,7 +16,7 @@ Adapt these guidelines to the situation — they are not rigid steps.
 
 **website** — Next.js 16 (Pages Router), React 19, Styled Components + Ant Design 4, Redux Toolkit 2. Connects to laravel API via `API_ENDPOINT_CLIENT`/`API_ENDPOINT_SERVER` env vars (baked at build time). Three Docker containers: `frontend-nginx` (domain gateway), `frontend-react` (Next.js app), `frontend-worker` (sitemap cron). MR branch convention: target latest `release/*` branch (currently `release/v2.10`). Pre-prod: `pre-prod.harbour.space`. **If the fix is purely UI/CSS/layout (no API data needed), the website can run standalone without laravel — just skip the API-dependent pages.**
 
-**laravel** — Laravel 6.18, PHP 7.2, MariaDB + Redis. REST API for the entire platform. Keycloak SSO, Firebase, Google APIs, Stripe payments. Service Layer pattern (`app/Services/`). Default branch: `master`.
+**laravel** — Laravel 6.18, PHP 7.2, MariaDB + Redis. REST API for the entire platform. Keycloak SSO, Firebase, Google APIs, Stripe payments. Service Layer pattern (`app/Services/`). Default branch: `master`. **If the issue requires real production data locally**, run `php artisan db:restore-from-prod` (see `docs/backup-restore.md`). Requires `DB_RESTORE_ENV=PRE-PROD` in the `.env` and `app.env` set to `pre-production`.
 
 **Cloning decision:** Only clone what you need. A CSS fix on website doesn't need laravel. An API bug doesn't need website. Clone both only if the fix spans both. If unsure, clone all.
 
@@ -44,6 +44,8 @@ Start the stack, wait for health checks.
 ## 3 — Fix, verify, iterate
 
 Work inside `~/Documents/HSCode/work/stacks/<stack-name>/`. This is autonomous — don't stop to ask unless genuinely stuck.
+
+**Before starting work**, read the `CLAUDE.md` of each cloned project in the stack for project-specific commands, setup instructions, and documentation pointers.
 
 Fix the issue, then **verify exhaustively** before moving on: run tests, write new tests if needed, check logs, use Chrome MCP for UI issues, run lint/build. If something fails, fix it and verify again.
 

@@ -1,0 +1,12 @@
+{
+  "name": "tokentrack",
+  "version": "1.0.0",
+  "description": "Track Claude Code usage per team member — session metrics, tool calls, and token estimates posted to a shared dashboard",
+  "author": {
+    "name": "Harbour.Space Institute of Technology",
+    "url": "https://harbour.space"
+  },
+  "repository": "https://gitlab.com/harbourspace/claude-plugins",
+  "keywords": ["tracking", "metrics", "usage", "dashboard", "tokens"],
+  "hooks": "./hooks/hooks.json"
+}

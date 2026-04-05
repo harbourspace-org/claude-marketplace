@@ -32,6 +32,12 @@
       "source": "./plugins/complete",
       "description": "Post-merge cleanup: tears down devkit stacks, pipelines, webhooks, and all issue-specific resources",
       "version": "1.0.0"
+    },
+    {
+      "name": "tokentrack",
+      "source": "./plugins/tokentrack",
+      "description": "Track Claude Code usage per team member with a shared dashboard",
+      "version": "1.0.0"
     }
   ]
 }

@@ -24,6 +24,38 @@ Before executing ANY devkit command, verify these are available. If any fails, s
 
 ---
 
+## Output Management (CRITICAL — saves tokens)
+
+Verbose commands (builds, installs, clones, health checks) produce thousands of lines that waste context tokens. **Always redirect their output to a log file** and only read the log if the command fails.
+
+**Log location:** `{workspace}/stacks/{instance}/.devkit.log`
+
+**Pattern for every heavy command:**
+```bash
+LOGFILE="{workspace}/stacks/{instance}/.devkit.log"
+echo "=== [$(date)] command-description ===" >> "$LOGFILE"
+<command> >> "$LOGFILE" 2>&1
+```
+
+If the command **fails** (non-zero exit), read the **last 30 lines** of the log to diagnose:
+```bash
+tail -30 "$LOGFILE"
+```
+
+**Commands that MUST be redirected:**
+- `glab repo clone` — git clone output
+- `docker compose build` — Docker layer output
+- `docker compose up -d` — container startup output
+- `npm install`, `composer install`, and any `post_setup` commands
+- Health check polling — only log failures, not every successful poll
+
+**Commands that should NOT be redirected** (need real-time output):
+- `devkit status` / `devkit list` — user wants to see the result
+- `devkit logs` — the whole point is to show logs
+- Pre-flight checks — short, user needs to see failures
+
+---
+
 ## Configuration Files
 
 - **Registry:** `${CLAUDE_SKILL_DIR}/registry.json` — static project definitions (repos, services, ports, env overrides, dependencies)

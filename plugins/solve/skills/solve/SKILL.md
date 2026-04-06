@@ -39,7 +39,7 @@ Figure out which projects and branches are needed from the issue context and the
 
 If the website points to a remote API instead of local laravel, patch the `.env` accordingly after creation.
 
-Start the stack, wait for health checks.
+Start the stack, wait for health checks. **Follow devkit's Output Management rules** — redirect all heavy output (clone, build, install) to `{workspace}/stacks/<stack-name>/.devkit.log`. Only read the log on failure.
 
 ## 3 — Fix, verify, iterate
 

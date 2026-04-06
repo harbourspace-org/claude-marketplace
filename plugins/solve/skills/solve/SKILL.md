@@ -43,7 +43,7 @@ Start the stack, wait for health checks.
 
 ## 3 — Fix, verify, iterate
 
-Work inside `~/Documents/HSCode/work/stacks/<stack-name>/`. This is autonomous — don't stop to ask unless genuinely stuck.
+Work inside `{workspace}/stacks/<stack-name>/` (resolve `{workspace}` from the devkit registry — see Step 2). This is autonomous — don't stop to ask unless genuinely stuck.
 
 **Before starting work**, read the `CLAUDE.md` of each cloned project in the stack for project-specific commands, setup instructions, and documentation pointers.
 

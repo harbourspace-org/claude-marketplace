@@ -13,6 +13,8 @@ You are performing post-merge cleanup for an issue that was solved with `/solve`
 
 This skill is the counterpart to `/solve`. After the MR has been merged and CI/CD pipelines have passed, the user invokes `/complete` to tear down everything that `/solve` created.
 
+**First**, resolve `{workspace}` by reading the devkit registry at `${CLAUDE_SKILL_DIR}/../../devkit/skills/devkit/registry.json`. If `workspace` is `"auto"`, use your primary working directory (the directory where this Claude Code session was opened). All paths below use `{workspace}`.
+
 ## Step 1 — Identify the stack
 
 The argument can be:
@@ -23,12 +25,12 @@ Determine the stack name (always lowercase, e.g. `hsdev-222`).
 
 Verify the stack exists:
 ```bash
-cat ~/Documents/HSCode/work/stacks/.devkit-instances.json 2>/dev/null
+cat {workspace}/stacks/.devkit-instances.json 2>/dev/null
 ```
 
 If the stack doesn't exist in the instances file, check if the directory exists:
 ```bash
-ls ~/Documents/HSCode/work/stacks/<stack-name>/ 2>/dev/null
+ls {workspace}/stacks/<stack-name>/ 2>/dev/null
 ```
 
 If neither exists, inform the user that no stack was found for that issue and stop.
@@ -40,7 +42,7 @@ Before tearing anything down, confirm that the work is actually done.
 For each project in the stack, check the MR status:
 
 ```bash
-cd ~/Documents/HSCode/work/stacks/<stack-name>/<project>
+cd {workspace}/stacks/<stack-name>/<project>
 # Find MRs from branches in this repo
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 glab mr list --source-branch="$BRANCH" --state=merged 2>/dev/null
@@ -65,7 +67,7 @@ If the MR is open, tell the user:
 For merged MRs, check that the target branch pipeline passed:
 
 ```bash
-cd ~/Documents/HSCode/work/stacks/<stack-name>/<project>
+cd {workspace}/stacks/<stack-name>/<project>
 # Get the pipeline status for the MR
 glab mr view --comments 2>/dev/null | head -50
 # Or check pipeline directly
@@ -91,14 +93,14 @@ This will:
 - Stop all containers in reverse dependency order
 - Remove volumes
 - Remove the Docker network `devkit-<stack-name>-net`
-- Delete the workspace directory `~/Documents/HSCode/work/stacks/<stack-name>/`
+- Delete the workspace directory `{workspace}/stacks/<stack-name>/`
 - Remove the instance from `.devkit-instances.json` (with file locking)
 - Free the port range
 
 Verify the stack is gone:
 ```bash
 docker ps --filter name=devkit-<stack-name> --format '{{.Names}}' 2>/dev/null
-ls ~/Documents/HSCode/work/stacks/<stack-name>/ 2>/dev/null
+ls {workspace}/stacks/<stack-name>/ 2>/dev/null
 ```
 
 ## Step 5 — Clean up ActiveCampaign pipeline (if applicable)
@@ -109,7 +111,7 @@ Look for AC-related artifacts:
 ```bash
 # Check if there are any AC pipeline references in the stack's git history or env
 grep -ri "activecampaign\|active_campaign\|AC_PIPELINE\|ac_automation" \
-  ~/Documents/HSCode/work/stacks/<stack-name>/ 2>/dev/null
+  {workspace}/stacks/<stack-name>/ 2>/dev/null
 ```
 
 If an AC pipeline was created as part of the issue:
@@ -124,7 +126,7 @@ Check if any webhooks were created for this issue:
 
 ```bash
 # Check GitLab project webhooks that might reference this stack/issue
-for project_dir in ~/Documents/HSCode/work/stacks/<stack-name>/*/; do
+for project_dir in {workspace}/stacks/<stack-name>/*/; do
   project=$(basename "$project_dir")
   echo "=== $project ==="
   cd "$project_dir" 2>/dev/null && glab api "projects/$(glab repo view --output json 2>/dev/null | python3 -c 'import sys,json; print(json.load(sys.stdin).get("id",""))')/hooks" 2>/dev/null | python3 -c "
@@ -161,7 +163,7 @@ Perform a final sweep for any remaining issue-specific resources:
 2. **Remote branches** — if the source branch was not auto-deleted by the MR, clean it up:
    ```bash
    # The MR was created with --remove-source-branch, but verify
-   for project_dir in ~/Documents/HSCode/work/stacks/<stack-name>/*/; do
+   for project_dir in {workspace}/stacks/<stack-name>/*/; do
      cd "$project_dir" 2>/dev/null
      BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
      if [ -n "$BRANCH" ] && [ "$BRANCH" != "HEAD" ]; then
@@ -172,7 +174,7 @@ Perform a final sweep for any remaining issue-specific resources:
 
 3. **Local workspace directory** — ensure the stack directory is fully removed:
    ```bash
-   rm -rf ~/Documents/HSCode/work/stacks/<stack-name>
+   rm -rf {workspace}/stacks/<stack-name>
    ```
 
 ## Step 8 — Summary

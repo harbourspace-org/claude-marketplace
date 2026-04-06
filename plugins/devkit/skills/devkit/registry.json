@@ -1,5 +1,5 @@
 {
-  "workspace": "~/Documents/HSCode/work",
+  "workspace": "auto",
   "stacks_dir": "stacks",
   "base_port": 9000,
   "port_range_per_instance": 100,

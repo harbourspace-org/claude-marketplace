@@ -3,14 +3,23 @@ name: solve
 description: >
   Solve an issue end-to-end. Accepts a Linear issue URL, an issue ID (e.g. HSDEV-222),
   or a literal text description. Spins up an isolated devkit stack, fixes the problem
-  autonomously, verifies it, and creates a GitLab MR.
-argument-hint: <linear-url | issue-id | text description>
+  autonomously, verifies it, and creates a GitLab MR. Add "local" to skip devkit
+  and work directly in the current project.
+argument-hint: <linear-url | issue-id | text description> [local]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch, Agent
 ---
 
 You are solving an issue. The input is: $ARGUMENTS
 
 Adapt these guidelines to the situation — they are not rigid steps.
+
+## Mode detection
+
+Check if the input contains the word **"local"** (case-insensitive). If it does:
+- Set **local mode = true** — you will work directly in the current working directory instead of creating a devkit stack.
+- Strip "local" from the input before parsing the issue reference.
+
+If "local" is absent → **stack mode** (default, uses devkit as before).
 
 ## Project briefs
 
@@ -27,7 +36,9 @@ Determine the input type and get the issue details:
 - **Issue ID** (e.g. `HSDEV-222`) → look it up via `mcp__claude_ai_Linear__search_issues` or fetch `https://linear.app/harbourspace/issue/<ID>`
 - **Literal text** → use it directly. No Linear comment will be posted later. Generate a short slug for the stack name (e.g. `fix-login-redirect`).
 
-## 2 — Spin up the devkit stack
+## 2 — Set up the environment
+
+### Stack mode (default)
 
 Follow the devkit skill at `${CLAUDE_SKILL_DIR}/../../devkit/skills/devkit/SKILL.md` to create an isolated environment.
 
@@ -41,11 +52,23 @@ If the website points to a remote API instead of local laravel, patch the `.env`
 
 Start the stack, wait for health checks. **Follow devkit's Output Management rules** — redirect all heavy output (clone, build, install) to `{workspace}/stacks/<stack-name>/.devkit.log`. Only read the log on failure.
 
+### Local mode
+
+Skip devkit entirely. You work directly in the **current working directory** (`$CWD`).
+
+1. Identify which project you're in by checking for known markers (`artisan` → laravel, `next.config.*` → website). If the CWD doesn't match either project, ask the user to `cd` into the correct directory or specify the path.
+2. Create a feature branch from the current branch: `git checkout -b <prefix>/<issue-id-or-slug>` (conventional-commit prefix based on the issue type — `fix/`, `feat/`, `chore/`, etc.). If the user is already on a feature branch, ask before switching.
+3. **Do not** create, start, or reference any devkit stack. All Docker / environment setup is the user's responsibility in local mode.
+4. The working directory for Phase 3 is simply `$CWD`.
+
 ## 3 — Fix, verify, iterate
 
-Work inside `{workspace}/stacks/<stack-name>/` (resolve `{workspace}` from the devkit registry — see Step 2). This is autonomous — don't stop to ask unless genuinely stuck.
+- **Stack mode:** work inside `{workspace}/stacks/<stack-name>/` (resolve `{workspace}` from the devkit registry — see Step 2).
+- **Local mode:** work inside `$CWD`.
 
-**Before starting work**, read the `CLAUDE.md` of each cloned project in the stack for project-specific commands, setup instructions, and documentation pointers.
+This is autonomous — don't stop to ask unless genuinely stuck.
+
+**Before starting work**, read the `CLAUDE.md` of the project for project-specific commands, setup instructions, and documentation pointers.
 
 Fix the issue, then **verify exhaustively** before moving on: run tests, write new tests if needed, check logs, use Chrome MCP for UI issues, run lint/build. If something fails, fix it and verify again.
 
@@ -55,19 +78,26 @@ Once all checks pass, present a summary and hand control to the user. **Do not c
 
 ## 5 — Create GitLab MR
 
+### Stack mode
 For each modified project inside the stack:
 - Create a branch with the appropriate conventional-commit prefix and the issue ID
 - Commit, push, open MR targeting `test` with `--remove-source-branch`
 - Use `glab mr create`
 
+### Local mode
+- The feature branch was already created in Phase 2. Commit all changes with `git add <file>` (specific files), then push.
+- Open MR targeting `test` with `--remove-source-branch` using `glab mr create`.
+
 ## 6 — Post-MR
 
 - **Linear mode:** comment on the issue with the MR link(s) using `mcp__claude_ai_Linear__save_comment`
-- Remind the user the stack is still running (`/complete <stack-name>` to clean up later)
+- **Stack mode only:** remind the user the stack is still running (`/complete <stack-name>` to clean up later)
+- **Local mode:** no cleanup needed — the user's local environment is untouched.
 
 ## Rules
 
-- All work happens inside the devkit stack directory, not the original repos
+- **Stack mode:** all work happens inside the devkit stack directory, not the original repos
+- **Local mode:** all work happens in the user's current working directory — never create or reference devkit stacks
 - MR target branch is always `test`
 - Commit messages include the issue ID (Linear mode)
 - Use specific `git add <file>`, never `git add -A`

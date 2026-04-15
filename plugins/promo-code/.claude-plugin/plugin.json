@@ -1,0 +1,11 @@
+{
+  "name": "promo-code",
+  "version": "1.0.0",
+  "description": "Create and manage application fee promo codes in the Harbour.Space Laravel backend",
+  "author": {
+    "name": "Harbour.Space Institute of Technology",
+    "url": "https://harbour.space"
+  },
+  "repository": "https://gitlab.com/harbourspace/claude-plugins",
+  "keywords": ["promo", "discount", "application-fee", "laravel", "sales"]
+}

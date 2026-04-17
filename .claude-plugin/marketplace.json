@@ -38,6 +38,12 @@
       "source": "./plugins/tokentrack",
       "description": "Track Claude Code usage per team member with a shared dashboard",
       "version": "1.0.0"
+    },
+    {
+      "name": "update-docs",
+      "source": "./plugins/update-docs",
+      "description": "Sync a repo's undocumented commits to the central Harbour.Space docs site",
+      "version": "1.0.0"
     }
   ]
 }

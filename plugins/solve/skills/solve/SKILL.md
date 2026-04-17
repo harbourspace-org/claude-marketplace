@@ -94,6 +94,19 @@ For each modified project inside the stack:
 - **Stack mode only:** remind the user the stack is still running (`/complete <stack-name>` to clean up later)
 - **Local mode:** no cleanup needed — the user's local environment is untouched.
 
+## 7 — Update docs
+
+For each repo that was modified, invoke the `update-docs` skill:
+
+- **Stack mode:** use the repo paths inside the stack directory (e.g. `{workspace}/stacks/<stack-name>/website`)
+- **Local mode:** use `$CWD`
+
+```
+/update-docs <repo-path>
+```
+
+Run once per modified repo. This is a best-effort step — if `last_documented_commit` doesn't exist in a repo yet, `update-docs` will warn and use the last 30 commits as scope. Don't block or fail the overall solve flow if this step encounters an error.
+
 ## Rules
 
 - **Stack mode:** all work happens inside the devkit stack directory, not the original repos

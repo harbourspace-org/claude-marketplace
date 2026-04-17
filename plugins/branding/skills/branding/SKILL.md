@@ -17,23 +17,24 @@ allowed-tools: Read
 ## Colors
 
 ### Modern design system tokens
-**Source:** `website/src/designSystem/colors.ts`
+**Source of truth:** `website/figma_tokens.json` (exported from Figma — these are the canonical values).
+`website/src/designSystem/colors.ts` exists but has slightly different values; always prefer Figma for visual work.
 
 #### Purple — primary brand
 
-| Token | Hex | Usage |
+| Token | Hex (Figma) | Usage |
 |---|---|---|
-| `purple-50` | `#f4f2ff` | Page backgrounds, tinted sections, `brand` semantic alias |
-| `purple-100` | `#e1dbff` | Hover states, subtle highlights |
-| `purple-200` | `#c1b4ff` | Borders on brand surfaces |
-| `purple-300` | `#9a83ff` | Decorative accents |
-| `purple-400` | `#7d51ff` / `#9d8cff` | Default `purple` alias; links on dark bg |
-| `purple-500` | `#6d2cf3` / `#8869fd` | Primary CTAs, active states |
-| `purple-600` | `#5929b9` | Hover on primary CTA |
-| `purple-700` | `#4b2696` | Legacy `brand` color (utils/styles.ts) |
-| `purple-800` | `#3c1e75` | Dark brand surfaces |
-| `purple-900` | `#2b1751` | Footer, very dark brand areas |
-| `purple-950` | `#1d0f39` | Deepest brand dark |
+| `purple-50` | `#efeeff` | Page backgrounds, tinted sections, `brand` semantic alias |
+| `purple-100` | `#dedcff` | Hover states, subtle highlights |
+| `purple-200` | `#cac5ff` | Borders on brand surfaces |
+| `purple-300` | `#b3aaff` | Decorative accents |
+| `purple-400` | `#9d8cff` | Default `purple` alias; links on dark bg |
+| `purple-500` | `#8869fd` | **Primary CTAs, active states — the main HS purple** |
+| `purple-600` | `#7346ef` | Hover on primary CTA |
+| `purple-700` | `#5d35c4` | Secondary actions, active nav |
+| `purple-800` | `#462b94` | Dark brand surfaces |
+| `purple-900` | `#312067` | Header, footer, very dark brand areas |
+| `purple-950` | `#1e1440` | Deepest brand dark |
 
 #### Neutral / Gray
 

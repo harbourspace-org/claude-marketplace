@@ -12,6 +12,7 @@ Claude Code plugin marketplace for the Harbour.Space engineering team.
 | **solve** | Solve a Linear issue end-to-end: fetch, plan, implement, and open a GitLab MR |
 | **devkit** | Multi-instance stack orchestrator — isolated Docker environments per task/agent |
 | **promo-code** | Create and manage application fee promo codes in the Laravel backend |
+| **update-docs** | Sync a repo's undocumented commits to the central Harbour.Space docs site |
 
 ## Installation
 
@@ -24,6 +25,7 @@ Claude Code plugin marketplace for the Harbour.Space engineering team.
 /plugin install solve@harbourspace-claude-plugins
 /plugin install devkit@harbourspace-claude-plugins
 /plugin install promo-code@harbourspace-claude-plugins
+/plugin install update-docs@harbourspace-claude-plugins
 ```
 
 Or add to a project's `.claude/settings.json` to auto-enable for all team members:
@@ -52,4 +54,5 @@ claude --plugin-dir ./plugins/harbour-docs
 claude --plugin-dir ./plugins/solve
 claude --plugin-dir ./plugins/devkit
 claude --plugin-dir ./plugins/promo-code
+claude --plugin-dir ./plugins/update-docs
 ```

@@ -105,7 +105,7 @@ For each repo that was modified, invoke the `update-docs` skill:
 /update-docs <repo-path>
 ```
 
-Run once per modified repo. This is a best-effort step — if `last_documented_commit` doesn't exist in a repo yet, `update-docs` will warn and use the last 30 commits as scope. Don't block or fail the overall solve flow if this step encounters an error.
+Run once per modified repo. This is a best-effort step — if `last_documented_commit` doesn't exist in a repo yet, `update-docs` will use the last 30 commits as scope and create the file automatically. Don't block or fail the overall solve flow if this step encounters an error.
 
 ## Rules
 

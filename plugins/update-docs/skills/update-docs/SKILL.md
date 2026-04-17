@@ -29,7 +29,7 @@ LAST=$(cat "$REPO/last_documented_commit" 2>/dev/null)
 HEAD=$(git -C "$REPO" rev-parse HEAD)
 ```
 
-- If `last_documented_commit` doesn't exist → use `HEAD~30` as `LAST`, warn the user.
+- If `last_documented_commit` doesn't exist → use `HEAD~30` as `LAST`, and create the file with `$HEAD` at the end of step 8 (same as the normal update path).
 - If `LAST == HEAD` → print "Already up to date." and stop.
 
 ```bash

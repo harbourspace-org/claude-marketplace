@@ -13,6 +13,7 @@ Claude Code plugin marketplace for the Harbour.Space engineering team.
 | **devkit** | Multi-instance stack orchestrator — isolated Docker environments per task/agent |
 | **promo-code** | Create and manage application fee promo codes in the Laravel backend |
 | **update-docs** | Sync a repo's undocumented commits to the central Harbour.Space docs site |
+| **branding** | Load Harbour.Space brand tokens — colors, typography, spacing, copy rules — into context |
 
 ## Installation
 
@@ -26,6 +27,7 @@ Claude Code plugin marketplace for the Harbour.Space engineering team.
 /plugin install devkit@harbourspace-claude-plugins
 /plugin install promo-code@harbourspace-claude-plugins
 /plugin install update-docs@harbourspace-claude-plugins
+/plugin install branding@harbourspace-claude-plugins
 ```
 
 Or add to a project's `.claude/settings.json` to auto-enable for all team members:
@@ -55,4 +57,5 @@ claude --plugin-dir ./plugins/solve
 claude --plugin-dir ./plugins/devkit
 claude --plugin-dir ./plugins/promo-code
 claude --plugin-dir ./plugins/update-docs
+claude --plugin-dir ./plugins/branding
 ```

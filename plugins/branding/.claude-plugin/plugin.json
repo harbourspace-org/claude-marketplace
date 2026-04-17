@@ -1,0 +1,11 @@
+{
+  "name": "branding",
+  "version": "1.0.0",
+  "description": "Load Harbour.Space brand tokens — colors, typography, spacing, copy rules — into the conversation context",
+  "author": {
+    "name": "Harbour.Space Institute of Technology",
+    "url": "https://harbour.space"
+  },
+  "repository": "https://github.com/harbourspace-org/claude-marketplace",
+  "keywords": ["branding", "design", "tokens", "typography", "colors"]
+}

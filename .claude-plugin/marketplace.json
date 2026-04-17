@@ -44,6 +44,12 @@
       "source": "./plugins/update-docs",
       "description": "Sync a repo's undocumented commits to the central Harbour.Space docs site",
       "version": "1.0.0"
+    },
+    {
+      "name": "branding",
+      "source": "./plugins/branding",
+      "description": "Load Harbour.Space brand tokens — colors, typography, spacing, copy rules — into the conversation context",
+      "version": "1.0.0"
     }
   ]
 }

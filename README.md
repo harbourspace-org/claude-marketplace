@@ -19,7 +19,7 @@ Claude Code plugin marketplace for the Harbour.Space engineering team.
 
 ```bash
 # Add the marketplace
-/plugin marketplace add harbourspace/claude-plugins
+/plugin marketplace add harbourspace-org/claude-marketplace
 
 # Install a plugin
 /plugin install harbour-docs@harbourspace-claude-plugins
@@ -36,7 +36,7 @@ Or add to a project's `.claude/settings.json` to auto-enable for all team member
 {
   "extraKnownMarketplaces": {
     "harbourspace-claude-plugins": {
-      "source": { "source": "github", "repo": "harbourspace/claude-plugins" }
+      "source": { "source": "github", "repo": "harbourspace-org/claude-marketplace" }
     }
   },
   "enabledPlugins": {

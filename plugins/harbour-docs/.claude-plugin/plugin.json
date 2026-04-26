@@ -6,6 +6,6 @@
     "name": "Harbour.Space Institute of Technology",
     "url": "https://harbour.space"
   },
-  "repository": "https://gitlab.com/harbourspace/claude-plugins",
-  "keywords": ["documentation", "mkdocs", "docs", "claude-md"]
+  "repository": "https://github.com/harbourspace-org/claude-marketplace",
+  "keywords": ["documentation", "mkdocs", "docs", "github-actions"]
 }

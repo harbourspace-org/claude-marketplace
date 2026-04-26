@@ -1,109 +1,133 @@
-# CI/CD Docs Sync Pipeline
+# GitHub Docs Sync Pipeline
 
-How documentation flows from project repos to the central MkDocs site.
+How optional project-repo docs sync works in the GitHub-era Harbour.Space setup.
 
-## How It Works
+## Current Default
 
-```
-Project repo (push to main/master/release)
-    ↓ CI detects changes to docs/** or CLAUDE.md
-    ↓ Clones docs-site repo (gitlab.com/harbourspace/docs)
-    ↓ Copies docs/ and CLAUDE.md → docs-site/docs/{project-name}/
-    ↓ Commits with [skip ci] and pushes
-    ↓
-docs-site repo receives commit
-    ↓ CI runs: mkdocs build --strict (validates all docs)
-    ↓ Dokploy rebuilds and deploys Docker container
-    ↓
-Live at docs.harbour.space (behind Keycloak SSO)
+The central docs repo is the publishing source:
+
+```text
+https://github.com/harbourspace-org/docs
 ```
 
-## Adding Sync to a New Project
-
-### 1. Add the CI stage
-
-Add `sync-docs` to your `.gitlab-ci.yml` stages list and append this job:
+The docs repo validates on pushes to `main` with:
 
 ```yaml
-stages:
-  # ... existing stages ...
-  - sync-docs
+name: validate
 
-sync-docs:
-  stage: sync-docs
-  image: alpine:latest
-  rules:
-    - changes:
-        - docs/**
-        - CLAUDE.md
-      when: on_success
-    - when: never
-  script:
-    - |
-      apk add --no-cache git
-      git clone https://gitlab-ci-token:${DOCS_DEPLOY_TOKEN}@gitlab.com/harbourspace/docs.git /tmp/docs-repo
-      mkdir -p /tmp/docs-repo/docs/${CI_PROJECT_NAME}
-      cp -r docs/. /tmp/docs-repo/docs/${CI_PROJECT_NAME}/
-      cp CLAUDE.md /tmp/docs-repo/docs/${CI_PROJECT_NAME}/CLAUDE.md
-      cd /tmp/docs-repo
-      git config user.email "ci@harbour.space"
-      git config user.name "CI Bot"
-      git add .
-      git diff --cached --quiet || git commit -m "docs: sync ${CI_PROJECT_NAME} [skip ci]"
-      git push
-  tags:
-    - dev
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    container: python:3.12-slim
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install --no-cache-dir -r requirements.txt
+      - name: Build docs
+        run: mkdocs build --strict
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: site/
+          retention-days: 1
 ```
 
-### 2. Set up the deploy token
+Most teams should publish by committing directly to `harbourspace-org/docs`.
 
-The `DOCS_DEPLOY_TOKEN` CI/CD variable must be configured in the project's GitLab settings (Settings → CI/CD → Variables). This token needs write access to `gitlab.com/harbourspace/docs`.
+## Optional Project Repo Sync
 
-If the variable is already set at the group level (`harbourspace`), it will be inherited automatically.
+Use this only when a project deliberately keeps `docs/` as its local source of truth and wants changes copied automatically into the central docs repo.
 
-### 3. Add nav entry to docs-site
+### Required GitHub Secret
 
-Edit `docs-site/mkdocs.yml` and add the project under the appropriate category:
+Add a fine-grained GitHub PAT to the project repo as:
+
+```text
+DOCS_DEPLOY_TOKEN
+```
+
+Minimum permission for direct sync commits:
+
+```text
+Repository: harbourspace-org/docs
+Contents: Read and write
+```
+
+If the workflow opens pull requests instead of pushing directly, also grant:
+
+```text
+Pull requests: Read and write
+```
+
+### Example Direct Sync Workflow
 
 ```yaml
-nav:
-  - Backends:  # or Frontends, Infrastructure, Analytics
-    # ... existing projects ...
-    - your-project-name:
-      - Overview: your-project-name/CLAUDE.md
-      - Architecture: your-project-name/architecture.md
-      - Setup: your-project-name/setup.md
-```
+name: Sync docs
 
-The directory name must match the GitLab project slug (`CI_PROJECT_NAME`).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/sync-docs.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: sync-docs-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DOCS_REPO: harbourspace-org/docs
+      DOCS_BRANCH: main
+      DOCS_TARGET_DIR: docs/my-project
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          path: project
+
+      - name: Checkout docs
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.DOCS_REPO }}
+          ref: ${{ env.DOCS_BRANCH }}
+          token: ${{ secrets.DOCS_DEPLOY_TOKEN }}
+          path: docs-site
+
+      - name: Sync docs
+        run: |
+          mkdir -p "docs-site/${DOCS_TARGET_DIR}"
+          rsync -a --delete project/docs/ "docs-site/${DOCS_TARGET_DIR}/"
+
+      - name: Commit and push
+        working-directory: docs-site
+        run: |
+          git config user.email "ci@harbour.space"
+          git config user.name "CI Bot"
+          git add "${DOCS_TARGET_DIR}"
+          if git diff --cached --quiet; then
+            echo "No docs changes to sync."
+            exit 0
+          fi
+          git commit -m "docs: sync my-project"
+          git push origin "HEAD:${DOCS_BRANCH}"
+```
 
 ## Important Details
 
-- **`[skip ci]`** in the commit message prevents the docs-site CI from triggering its own sync (avoids infinite loops)
-- **`mkdocs build --strict`** on the docs-site catches broken links and missing files — if a nav entry references a file that doesn't exist, the build fails
-- **Block scalar (`- |`)** is used in the script because `git commit -m "docs: sync ..."` contains a colon that YAML would otherwise parse as a key-value separator
-- The sync only runs when `docs/**` or `CLAUDE.md` actually change — other code changes don't trigger it
-
-## docs-site CI Pipeline
-
-The docs-site repo (`gitlab.com/harbourspace/docs`) has a minimal CI:
-
-```yaml
-stages:
-  - validate
-
-validate-docs:
-  stage: validate
-  image: python:3.12-slim
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-  script:
-    - pip install --no-cache-dir -r requirements.txt
-    - mkdocs build --strict
-  artifacts:
-    paths:
-      - site/
-    expire_in: 1 hour
-```
-
-Deployment is handled by Dokploy, which watches the repo and rebuilds the Docker container on push.
+- Do not assume `DOCS_DEPLOY_TOKEN` exists; it must be created intentionally.
+- Keep `DOCS_TARGET_DIR` stable so old pages are removed when project docs are deleted.
+- Add or update the central `mkdocs.yml` nav entry when introducing a new section.
+- Always run `mkdocs build --strict` in the docs repo before considering the change publish-ready.

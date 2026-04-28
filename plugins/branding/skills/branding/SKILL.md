@@ -98,6 +98,16 @@ allowed-tools: Read
 
 ---
 
+## Brand Assets
+
+Use the packaged Harbour.Space wordmark when a project needs the official logo
+in a header, docs site, internal tool, or branded export:
+
+- `assets/harbour-space-logo-white.svg` — white wordmark, sourced from the live
+  `harbour.space` header logo.
+
+---
+
 ## Typography
 
 ### Font family
@@ -255,5 +265,6 @@ No formal style guide exists — conventions derived from live content.
 | Legacy colors + breakpoints | `website/src/utils/styles.ts` |
 | Font face definitions | `website/src/styles/apercu-pro.css` |
 | Font files | `website/public/fonts/` |
+| Packaged white wordmark | `assets/harbour-space-logo-white.svg` |
 | Blog SCSS vars | `website/src/blog/styles/const.scss` |
 | Global app styles | `website/pages/_app.tsx` |

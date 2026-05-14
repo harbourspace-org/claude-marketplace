@@ -50,6 +50,12 @@
       "source": "./plugins/branding",
       "description": "Load Harbour.Space brand tokens — colors, typography, spacing, copy rules — into the conversation context",
       "version": "1.0.0"
+    },
+    {
+      "name": "visual-qa",
+      "source": "./plugins/visual-qa",
+      "description": "Drive the visual-qa review workflow at qa.harbour.space — triage pending pages, view diffs at native resolution, approve/reject baselines, trigger runs, file Linear issues",
+      "version": "1.0.0"
     }
   ]
 }

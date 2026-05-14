@@ -1,0 +1,11 @@
+{
+  "name": "visual-qa",
+  "version": "1.0.0",
+  "description": "Drive the visual-qa review workflow at qa.harbour.space from Claude — triage pending pages, view diffs at native resolution, approve/reject baselines, trigger runs, file Linear issues",
+  "author": {
+    "name": "Harbour.Space Institute of Technology",
+    "url": "https://harbour.space"
+  },
+  "repository": "https://github.com/harbourspace-org/claude-marketplace",
+  "keywords": ["visual-regression", "qa", "screenshots", "review", "harbour-space", "mcp"]
+}

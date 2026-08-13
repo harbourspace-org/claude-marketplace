@@ -1,0 +1,13 @@
+# PR review media: treat as binary and collapse in diffs, so review assets never
+# clutter a pull request's file list or skew the repo's language statistics.
+*.png  binary linguist-generated=true
+*.jpg  binary linguist-generated=true
+*.jpeg binary linguist-generated=true
+*.gif  binary linguist-generated=true
+*.webp binary linguist-generated=true
+*.avif binary linguist-generated=true
+*.svg  binary linguist-generated=true
+*.mp4  binary linguist-generated=true
+*.mov  binary linguist-generated=true
+*.webm binary linguist-generated=true
+*.pdf  binary linguist-generated=true

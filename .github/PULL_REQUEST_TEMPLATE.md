@@ -46,6 +46,9 @@ against (local / pre-prod / prod). Say what you did NOT test.
 <!--
 REQUIRED for any frontend change: screenshots, gifs or mp4s of the change working,
 on desktop AND mobile if both are supported.
+The CLI cannot attach files: commit them to `.github/pr-assets/` and link the commit
+permalink (inline embeds do not render in a private repo). Keep that folder under
+~100MB — `.github/pr-assets/prune.sh` drops the oldest when it grows past that.
 Delete this section if there are no user-facing changes.
 -->
 

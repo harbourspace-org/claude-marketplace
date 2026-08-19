@@ -2,7 +2,8 @@
 name: update-docs
 description: >
   Check a repo's commits since the hash in last_documented_commit, decide if
-  anything warrants a docs update, and push changes to the central docs repo.
+  anything warrants a docs update, and write those updates into the repo's own
+  CLAUDE.md and docs/.
 argument-hint: <repo-name-or-path>
 user-invocable: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
@@ -29,7 +30,7 @@ LAST=$(cat "$REPO/last_documented_commit" 2>/dev/null)
 HEAD=$(git -C "$REPO" rev-parse HEAD)
 ```
 
-- If `last_documented_commit` doesn't exist → use `HEAD~30` as `LAST`, and create the file with `$HEAD` at the end of step 8 (same as the normal update path).
+- If `last_documented_commit` doesn't exist → use `HEAD~30` as `LAST`, and create the file with `$HEAD` at the end of step 7 (same as the normal update path).
 - If `LAST == HEAD` → print "Already up to date." and stop.
 
 ```bash
@@ -71,27 +72,16 @@ Read file-by-file. Stop reading a file once you have enough to judge its impact.
 | Setup or env var change | `docs/setup.md` in source repo |
 | Stack / framework change | `CLAUDE.md` + `docs/` in source repo |
 | New CLI command or script | `CLAUDE.md` commands section |
-| Cross-project integration | central docs repo only |
 | Refactor / rename | Skip unless it changes how to use the code |
 | Only tests / styles / lock files | Skip |
 
-If nothing qualifies → jump straight to step 8.
+If nothing qualifies → jump straight to step 7.
 
-## 6. Locate / clone docs repo
+## 6. Write documentation updates
 
-```bash
-DOCS_DIR=~/dev/docs
-if [ ! -d "$DOCS_DIR/.git" ]; then
-  git clone https://github.com/harbourspace-org/docs.git "$DOCS_DIR"
-else
-  git -C "$DOCS_DIR" pull --rebase
-fi
-```
-
-## 7. Write documentation updates
-
-- **Source repo** (`$REPO/docs/` or `$REPO/CLAUDE.md`): project-scoped changes.
-- **Central docs repo** (`$DOCS_DIR`): cross-project or integration content only.
+All documentation lives in the repo it describes (`$REPO/docs/` or
+`$REPO/CLAUDE.md`). There is no central docs site — `docs.harbour.space` was
+deprecated in August 2026, so nothing is cloned or pushed anywhere else.
 
 Guidelines (keep it tight):
 - Concrete file paths and command examples
@@ -99,22 +89,13 @@ Guidelines (keep it tight):
 - Don't duplicate CLAUDE.md content in docs/
 - kebab-case filenames, singular topics (`auth.md` not `authentication.md`)
 
-If adding a new docs file to the central repo, add a nav entry to `$DOCS_DIR/mkdocs.yml`.
-
 Commit source repo changes (if any):
 ```bash
 git -C "$REPO" add docs/ CLAUDE.md
 git -C "$REPO" commit -m "docs: update documentation through ${HEAD:0:7}"
 ```
 
-Commit and push docs repo changes (if any):
-```bash
-git -C "$DOCS_DIR" add .
-git -C "$DOCS_DIR" commit -m "docs($(basename $REPO)): sync updates through ${HEAD:0:7}"
-git -C "$DOCS_DIR" pull --rebase && git -C "$DOCS_DIR" push
-```
-
-## 8. Update last_documented_commit
+## 7. Update last_documented_commit
 
 ```bash
 echo "$HEAD" > "$REPO/last_documented_commit"

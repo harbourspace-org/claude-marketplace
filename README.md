@@ -8,11 +8,11 @@ Claude Code plugin marketplace for the Harbour.Space engineering team.
 
 | Plugin | Description |
 |---|---|
-| **harbour-docs** | Documentation management across project repos and the central MkDocs site |
+| **harbour-docs** | Documentation management across project repos |
 | **solve** | Solve a Linear issue end-to-end: fetch, plan, implement, and open a GitLab MR |
 | **devkit** | Multi-instance stack orchestrator — isolated Docker environments per task/agent |
 | **promo-code** | Create and manage application fee promo codes in the Laravel backend |
-| **update-docs** | Sync a repo's undocumented commits to the central Harbour.Space docs site |
+| **update-docs** | Document a repo's undocumented commits in its own CLAUDE.md and docs/ |
 | **branding** | Load Harbour.Space brand tokens — colors, typography, spacing, copy rules — into context |
 
 ## Installation

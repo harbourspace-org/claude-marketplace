@@ -12,7 +12,7 @@
     {
       "name": "harbour-docs",
       "source": "./plugins/harbour-docs",
-      "description": "Documentation management across Harbour.Space project repos and central docs site",
+      "description": "Documentation management across Harbour.Space project repos",
       "version": "1.0.0"
     },
     {
@@ -24,7 +24,7 @@
     {
       "name": "devkit",
       "source": "./plugins/devkit",
-      "description": "Multi-instance stack orchestrator — spin up isolated Docker environments per task/agent",
+      "description": "Multi-instance stack orchestrator \u2014 spin up isolated Docker environments per task/agent",
       "version": "1.0.0"
     },
     {
@@ -42,19 +42,19 @@
     {
       "name": "update-docs",
       "source": "./plugins/update-docs",
-      "description": "Sync a repo's undocumented commits to the central Harbour.Space docs site",
+      "description": "Document a repo's undocumented commits in its own CLAUDE.md and docs/",
       "version": "1.0.0"
     },
     {
       "name": "branding",
       "source": "./plugins/branding",
-      "description": "Load Harbour.Space brand tokens — colors, typography, spacing, copy rules — into the conversation context",
+      "description": "Load Harbour.Space brand tokens \u2014 colors, typography, spacing, copy rules \u2014 into the conversation context",
       "version": "1.0.0"
     },
     {
       "name": "visual-qa",
       "source": "./plugins/visual-qa",
-      "description": "Drive the visual-qa review workflow at qa.harbour.space — triage pending pages, view diffs at native resolution, approve/reject baselines, trigger runs, file Linear issues",
+      "description": "Drive the visual-qa review workflow at qa.harbour.space \u2014 triage pending pages, view diffs at native resolution, approve/reject baselines, trigger runs, file Linear issues",
       "version": "1.0.0"
     }
   ]

@@ -46,9 +46,17 @@ against (local / pre-prod / prod). Say what you did NOT test.
 <!--
 REQUIRED for any frontend change: screenshots, gifs or mp4s of the change working,
 on desktop AND mobile if both are supported.
-The CLI cannot attach files: commit them to `.github/pr-assets/` and link the commit
-permalink (inline embeds do not render in a private repo). Keep that folder under
-~100MB — `.github/pr-assets/prune.sh` drops the oldest when it grows past that.
+Attach them as native GitHub attachments (they render inline even in a private
+repo) — never commit them to the repo.
+
+  gh pr create/comment --attach './shot.png#alt text'      # gh >= 2.99
+
+On older gh, upload via the same endpoint and embed the returned URL as
+![alt](url):
+
+  curl -s "https://uploads.github.com/user-attachments/assets?name=<file>&content_type=<mime>&repository_id=$(gh api repos/:owner/:repo --jq .id)" \
+    -X POST -H "Authorization: Bearer $(gh auth token)" \
+    -H "Accept: application/json" --data-binary "@<file>"
 Delete this section if there are no user-facing changes.
 -->
 

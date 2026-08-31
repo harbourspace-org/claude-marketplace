@@ -56,6 +56,12 @@
       "source": "./plugins/visual-qa",
       "description": "Drive the visual-qa review workflow at qa.harbour.space \u2014 triage pending pages, view diffs at native resolution, approve/reject baselines, trigger runs, file Linear issues",
       "version": "1.0.0"
+    },
+    {
+      "name": "promo-code",
+      "source": "./plugins/promo-code",
+      "description": "Create, look up, update, or list application-fee promo codes in the Harbour.Space Laravel backend",
+      "version": "1.0.0"
     }
   ]
 }

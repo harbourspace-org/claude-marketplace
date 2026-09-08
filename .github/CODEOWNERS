@@ -1,0 +1,18 @@
+# Code owners for harbourspace-org/claude-marketplace.
+#
+# Every path resolves to @harbourspace-org/devs — the org has one team today, so
+# this is a declaration of ownership rather than a routing rule. It exists for
+# two reasons:
+#
+#   1. `require_code_owner_review` in a branch ruleset is inert without owners
+#      declared here. This repo has no ruleset yet; when it gets one, the file
+#      is already in place and the rule bites immediately.
+#   2. `.github/` is explicitly owned. The Claude GitHub App is installed on
+#      this org with `workflows:write`, so an agent working from Slack can edit
+#      CI. Owning the path means a human signs off on a change to it.
+#
+# CODEOWNERS is read from the BASE branch of a pull request, so this applies to
+# PRs into `main`. Copy it to any other long-lived branch that takes PRs.
+
+*           @harbourspace-org/devs
+/.github/   @harbourspace-org/devs

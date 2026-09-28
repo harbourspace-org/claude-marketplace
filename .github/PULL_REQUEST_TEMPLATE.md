@@ -2,8 +2,6 @@
 PR description rules:
 - Sections must not repeat each other. Section 2 continues section 1, it does not rephrase it.
 - Plain English throughout. Code only in section 2, and only for key contracts.
-- Assign a reviewer who can actually review these changes. If you are not sure who
-  that is, assign @valeriyproklov or @carlosmora-sys.
 -->
 
 ## Summary
